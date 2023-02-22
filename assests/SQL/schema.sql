@@ -12,6 +12,7 @@ CREATE TABLE role (
     title VARCHAR(255) NOT NULL UNIQUE,
     role_id INT AUTO_INCREMENT NOT NULL PRIMARY KEY,
     department VARCHAR(255) UNIQUE,
+    salary INT NOT NULL,
     FOREIGN KEY (department)
     REFERENCES department(dept_name)
     ON DELETE SET NULL
@@ -23,7 +24,7 @@ CREATE TABLE employee (
     last_name VARCHAR(150) NOT NULL,
     job_title VARCHAR(255),
     department VARCHAR(255),
-    salary INT NOT NULL,
+    salary INT,
     manager_name VARCHAR(255),
     FOREIGN KEY (job_title)
     REFERENCES role(title)
