@@ -4,13 +4,13 @@ CREATE DATABASE work_db;
 USE work_db;
 
 CREATE TABLE department (
-    dept_id INT NOT NULL AUTO_INCREMENT,
+    dept_id INT NOT NULL,
     dept_name VARCHAR(255) NOT NULL PRIMARY KEY
 );
 
 CREATE TABLE role (
     job_title VARCHAR(255) NOT NULL PRIMARY KEY,
-    role_id INT NOT NULL AUTO_INCREMENT,
+    role_id INT NOT NULL,
     dept_name VARCHAR(255),
     salary INT NOT NULL,
     FOREIGN KEY (dept_name)
