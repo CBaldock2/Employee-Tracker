@@ -4,11 +4,11 @@ VALUES  ('Legal'),
         ('Support'),
         ('Marketing');
 
-INSERT INTO role (title, department)
-VALUES  ('Lawyer', 'Legal'),
-        ('Supply Associate', 'Supply'),
-        ('Marketing Analyst', 'Marketing'),
-        ('Customer Service', 'Support');
+INSERT INTO role (title, department, salary)
+VALUES  ('Lawyer', 'Legal', 80000),
+        ('Supply Associate', 'Supply', 55000),
+        ('Marketing Analyst', 'Marketing', 60000),
+        ('Customer Service', 'Support', 50000);
 
 INSERT INTO employee (first_name, last_name, job_title, department, salary, manager_name)
 VALUES  ('Bill', 'Ding', 'Marketing Analyst', 'Marketing', 60000, 'Barb E. Dahl'),

@@ -12,7 +12,7 @@ const db = mysql.createConnection(
     {
         host: 'localhost',
         user: 'root',
-        password: '',
+        password: 'Saratoga728!',
         database: 'work_db'
     },
     console.log(`Connected to the work_db database.`)
@@ -26,7 +26,7 @@ const firstTask = [
         name: 'firstTask',
         choices: ['View all departments', 'View all roles', 'View all employees', 'Add a department', 'Add a role', 'Add an employee', 'Update an employee role', 'Quit']
     }
-]
+];
 
 const addDept = [
     {
@@ -35,7 +35,7 @@ const addDept = [
         name: 'newDeptName',
         validate: (value) => { if (value) { return true } else { return 'You need to add a department' } }
     }
-]
+];
 
 const addRole = [
     {
@@ -53,10 +53,9 @@ const addRole = [
     {
         type: 'input',
         message: 'What department is this role in?',
-        name: 'newRoleDept',
-        validate: (value) => { if (value) { return true } else { return 'You need to add a department' } }
+        name: 'newRoleDept'
     }
-]
+];
 
 const addEmp = [
     {
@@ -131,7 +130,13 @@ function init() {
                 break;
             case 'Add a role':
                 inquirer.prompt(addRole).then((answers) => {
-                    db.query('INSERT INTO role SET ?, ?, ?', { title: answers.newRoleName }, { department: answers.newRoleDept }, { salary: answers.newSal }, function (err, results) {
+                    db.query('INSERT INTO role SET ?, ?, ?', 
+                    [
+                        { title: answers.newRoleName }, 
+                        { department: answers.newRoleDept }, 
+                        { salary: answers.newSal }
+                    ], 
+                    function (err, results) {
                         if (err) {
                             throw err;
                         }
@@ -142,7 +147,14 @@ function init() {
                 break;
             case 'Add an employee':
                 inquirer.prompt(addEmp).then((answers) => {
-                    db.query('INSERT INTO employee SET ?, ?, ?, ?', { first_name: answers.newFirName }, { last_name: answers.newLaName }, { job_title: answers.newEmpRole }, { manager_name: answers.empManager }, function (err, results) {
+                    db.query('INSERT INTO employee SET ?, ?, ?, ?', 
+                    [
+                        { first_name: answers.newFirName },
+                        { last_name: answers.newLaName },
+                        { job_title: answers.newEmpRole },
+                        { manager_name: answers.empManager }
+                    ], 
+                    function (err, results) {
                         if (err) {
                             throw err;
                         }
