@@ -37,51 +37,8 @@ const addDept = [
     }
 ];
 
-const addRole = [
-    {
-        type: 'input',
-        message: 'What role would you like to add?',
-        name: 'newRoleName',
-        validate: (value) => { if (value) { return true } else { return 'You need to add a role' } }
-    },
-    {
-        type: 'input',
-        message: 'What is the salary for this role?',
-        name: 'newSal',
-        validate: (value) => { if (value) { return true } else { return 'You need to add a salary' } }
-    },
-    {
-        type: 'input',
-        message: 'What department is this role in?',
-        name: 'newRoleDept'
-    }
-];
-
 const addEmp = [
-    {
-        type: 'input',
-        message: 'What is the employees FIRST name?',
-        name: 'newFirName',
-        validate: (value) => { if (value) { return true } else { return 'You need to add a department' } }
-    },
-    {
-        type: 'input',
-        message: 'What is the employees LAST name?',
-        name: 'newLaName',
-        validate: (value) => { if (value) { return true } else { return 'You need to add a role' } }
-    },
-    {
-        type: 'input',
-        message: 'What is the employees role?',
-        name: 'newEmpRole',
-        validate: (value) => { if (value) { return true } else { return 'You need to add a salary' } }
-    },
-    {
-        type: 'input',
-        message: 'Who is the employees manager?',
-        name: 'empManager',
-        validate: (value) => { if (value) { return true } else { return 'You need to add a department' } }
-    }
+
 ];
 
 
@@ -129,37 +86,94 @@ function init() {
                 });
                 break;
             case 'Add a role':
-                inquirer.prompt(addRole).then((answers) => {
-                    db.query('INSERT INTO role SET ?, ?, ?', 
-                    [
-                        { title: answers.newRoleName }, 
-                        { department: answers.newRoleDept }, 
-                        { salary: answers.newSal }
-                    ], 
-                    function (err, results) {
-                        if (err) {
-                            throw err;
+                db.query('SELECT dept_name FROM department', function (err, results) {
+                    if (err) throw err;
+                    const deptList = results.map(department => ({
+                        name: `${department.dept_name}`,
+                        value: department.dept_name
+                    }));
+                    inquirer.prompt([
+                        {
+                            type: 'input',
+                            message: 'What role would you like to add?',
+                            name: 'newRoleName',
+                            validate: (value) => { if (value) { return true } else { return 'You need to add a role' } }
+                        },
+                        {
+                            type: 'input',
+                            message: 'What is the salary for this role?',
+                            name: 'newSal',
+                            validate: (value) => { if (value) { return true } else { return 'You need to add a salary' } }
+                        },
+                        {
+                            type: 'list',
+                            message: 'What department is this role in?',
+                            name: 'newRoleDept',
+                            choices: deptList
                         }
-                        console.log('Role successfully added!');
-                        init();
+                    ]).then((answers) => {
+                        db.query('INSERT INTO role SET ?',
+                            {
+                                title: answers.newRoleName,
+                                department: answers.newRoleDept,
+                                salary: answers.newSal
+                            }, function (err, results) {
+                                if (err) throw err;
+                                console.log('Role successfully added!');
+                                init();
+                            });
                     });
                 });
                 break;
             case 'Add an employee':
-                inquirer.prompt(addEmp).then((answers) => {
-                    db.query('INSERT INTO employee SET ?, ?, ?, ?', 
-                    [
-                        { first_name: answers.newFirName },
-                        { last_name: answers.newLaName },
-                        { job_title: answers.newEmpRole },
-                        { manager_name: answers.empManager }
-                    ], 
-                    function (err, results) {
-                        if (err) {
-                            throw err;
+                db.query('SELECT * FROM role', function (err, results) {
+                    if (err) throw err;
+                    const roleList = results.map(role => ({
+                        name: `${role.title}`,
+                        value: role.title
+                    }));
+                    inquirer.prompt([
+
+                        {
+                            type: 'input',
+                            message: 'What is the employees FIRST name?',
+                            name: 'newFirName',
+                            validate: (value) => { if (value) { return true } else { return 'You need to add a department' } }
+                        },
+                        {
+                            type: 'input',
+                            message: 'What is the employees LAST name?',
+                            name: 'newLaName',
+                            validate: (value) => { if (value) { return true } else { return 'You need to add a role' } }
+                        },
+                        {
+                            type: 'list',
+                            message: 'What is the employees role?',
+                            name: 'newEmpRole',
+                            choices: roleList
+                            
+                        },
+                        {
+                            type: 'input',
+                            message: 'Who is the employees manager?',
+                            name: 'empManager',
+                            validate: (value) => { if (value) { return true } else { return 'You need to add a department' } }
                         }
-                        console.log('Employee added successfully');
-                        init();
+                    ]).then((answers) => {
+                        db.query('INSERT INTO employee SET ?, ?, ?, ?',
+                            [
+                                { first_name: answers.newFirName },
+                                { last_name: answers.newLaName },
+                                { job_title: answers.newEmpRole },
+                                { manager_name: answers.empManager }
+                            ],
+                            function (err, results) {
+                                if (err) {
+                                    throw err;
+                                }
+                                console.log('Employee added successfully');
+                                init();
+                            });
                     });
                 });
                 break;
