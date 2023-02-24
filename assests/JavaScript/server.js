@@ -37,11 +37,6 @@ const addDept = [
     }
 ];
 
-const addEmp = [
-
-];
-
-
 function init() {
     inquirer.prompt(firstTask).then((answers) => {
         const choice = answers.firstTask;
@@ -52,31 +47,44 @@ function init() {
                     if (err) {
                         throw err;
                     }
-                    console.log(results);
+                    console.table(results);
                     init();
                 });
                 break;
             case 'View all roles':
-                db.query('SELECT * FROM role', function (err, results) {
+                db.query(`SELECT r.id, r.title, r.salary, d.name AS department
+                FROM role r 
+                JOIN department d ON r.department_id = d.id;`, function (err, results) {
                     if (err) {
                         throw err;
                     }
-                    console.log(results);
+                    console.table(results);
                     init();
                 });
                 break;
             case 'View all employees':
-                db.query('SELECT * FROM employee', function (err, results) {
+                db.query(`SELECT e.id, e.first_name, e.last_name, r.title AS job_title, d.name AS department, r.salary,
+                CASE 
+                    WHEN e.manager_id = 1 THEN 'Bill Murray'
+                    WHEN e.manager_id = 2 THEN 'Joe Kerr'
+                    WHEN e.manager_id = 3 THEN 'Sue Flay'
+                    WHEN e.manager_id = 4 THEN 'Won Tee'
+                    WHEN e.manager_id = 5 THEN 'None'
+                    ELSE NULL
+                END AS manager_name
+            FROM employee e
+            JOIN role r ON e.role_id = r.id
+            JOIN department d ON r.department_id = d.id;`, function (err, results) {
                     if (err) {
                         throw err;
                     }
-                    console.log(results);
+                    console.table(results);
                     init();
                 });
                 break;
             case 'Add a department':
                 inquirer.prompt(addDept).then((answers) => {
-                    db.query('INSERT INTO department SET ?;', { dept_name: answers.newDeptName }, function (err, results) {
+                    db.query('INSERT INTO department SET ?;', { name: answers.newDeptName }, function (err, results) {
                         if (err) {
                             throw err;
                         }
@@ -86,11 +94,11 @@ function init() {
                 });
                 break;
             case 'Add a role':
-                db.query('SELECT dept_name FROM department', function (err, results) {
+                db.query('SELECT id, name FROM department', function (err, results) {
                     if (err) throw err;
                     const deptList = results.map(department => ({
-                        name: `${department.dept_name}`,
-                        value: department.dept_name
+                        name: `${department.name}`,
+                        value: department.id
                     }));
                     inquirer.prompt([
                         {
@@ -115,7 +123,7 @@ function init() {
                         db.query('INSERT INTO role SET ?',
                             {
                                 title: answers.newRoleName,
-                                department: answers.newRoleDept,
+                                department_id: answers.newRoleDept,
                                 salary: answers.newSal
                             }, function (err, results) {
                                 if (err) throw err;
@@ -130,7 +138,7 @@ function init() {
                     if (err) throw err;
                     const roleList = results.map(role => ({
                         name: `${role.title}`,
-                        value: role.title
+                        value: role.id
                     }));
                     inquirer.prompt([
 
@@ -151,22 +159,28 @@ function init() {
                             message: 'What is the employees role?',
                             name: 'newEmpRole',
                             choices: roleList
-                            
+
                         },
                         {
-                            type: 'input',
+                            type: 'list',
                             message: 'Who is the employees manager?',
                             name: 'empManager',
-                            validate: (value) => { if (value) { return true } else { return 'You need to add a department' } }
+                            choices: [
+                                1,
+                                2,
+                                3,
+                                4,
+                                5
+                            ]
                         }
                     ]).then((answers) => {
-                        db.query('INSERT INTO employee SET ?, ?, ?, ?',
-                            [
-                                { first_name: answers.newFirName },
-                                { last_name: answers.newLaName },
-                                { job_title: answers.newEmpRole },
-                                { manager_name: answers.empManager }
-                            ],
+                        db.query('INSERT INTO employee SET ?',
+                            {
+                                first_name: answers.newFirName ,
+                                last_name: answers.newLaName ,
+                                role_id: answers.newEmpRole ,
+                                manager_id: answers.empManager 
+                            },
                             function (err, results) {
                                 if (err) {
                                     throw err;
