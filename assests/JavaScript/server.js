@@ -12,7 +12,7 @@ const db = mysql.createConnection(
     {
         host: 'localhost',
         user: 'root',
-        password: 'Saratoga728!',
+        password: '',
         database: 'work_db'
     },
     console.log(`Connected to the work_db database.`)
@@ -65,11 +65,10 @@ function init() {
             case 'View all employees':
                 db.query(`SELECT e.id, e.first_name, e.last_name, r.title AS job_title, d.name AS department, r.salary,
                 CASE 
-                    WHEN e.manager_id = 1 THEN 'Bill Murray'
-                    WHEN e.manager_id = 2 THEN 'Joe Kerr'
-                    WHEN e.manager_id = 3 THEN 'Sue Flay'
-                    WHEN e.manager_id = 4 THEN 'Won Tee'
-                    WHEN e.manager_id = 5 THEN 'None'
+                    WHEN e.manager_id = 1 THEN 'Bill Ding'
+                    WHEN e.manager_id = 2 THEN 'Jo King'
+                    WHEN e.manager_id = 3 THEN 'Stan Still'
+                    WHEN e.manager_id = 4 THEN 'David Pitts'
                     ELSE NULL
                 END AS manager_name
             FROM employee e
@@ -137,57 +136,61 @@ function init() {
                 db.query('SELECT * FROM role', function (err, results) {
                     if (err) throw err;
                     const roleList = results.map(role => ({
-                        name: `${role.title}`,
+                        name: role.title,
                         value: role.id
                     }));
-                    inquirer.prompt([
+                    db.query('SELECT e.id, e.first_name, e.last_name FROM employee e LEFT JOIN employee m ON e.manager_id = m.id WHERE e.manager_id IS NULL', function (err, results) {
+                        if (err) throw err;
+                        const employeeList = [
+                            { name: 'None', value: null },
+                            ...results.map(employee => ({
+                                name: `${employee.first_name} ${employee.last_name}`,
+                                value: employee.id
+                            }))
+                        ];
 
-                        {
-                            type: 'input',
-                            message: 'What is the employees FIRST name?',
-                            name: 'newFirName',
-                            validate: (value) => { if (value) { return true } else { return 'You need to add a department' } }
-                        },
-                        {
-                            type: 'input',
-                            message: 'What is the employees LAST name?',
-                            name: 'newLaName',
-                            validate: (value) => { if (value) { return true } else { return 'You need to add a role' } }
-                        },
-                        {
-                            type: 'list',
-                            message: 'What is the employees role?',
-                            name: 'newEmpRole',
-                            choices: roleList
-
-                        },
-                        {
-                            type: 'list',
-                            message: 'Who is the employees manager?',
-                            name: 'empManager',
-                            choices: [
-                                1,
-                                2,
-                                3,
-                                4,
-                                5
-                            ]
-                        }
-                    ]).then((answers) => {
-                        db.query('INSERT INTO employee SET ?',
+                        inquirer.prompt([
                             {
-                                first_name: answers.newFirName ,
-                                last_name: answers.newLaName ,
-                                role_id: answers.newEmpRole ,
-                                manager_id: answers.empManager 
+                                type: 'input',
+                                message: 'What is the employees FIRST name?',
+                                name: 'newFirName',
+                                validate: (value) => { if (value) { return true } else { return 'You need to add a department' } }
                             },
-                            function (err, results) {
-                                if (err) {
-                                    throw err;
-                                }
-                                console.log('Employee added successfully');
-                                init();
-                            });
+                            {
+                                type: 'input',
+                                message: 'What is the employees LAST name?',
+                                name: 'newLaName',
+                                validate: (value) => { if (value) { return true } else { return 'You need to add a role' } }
+                            },
+                            {
+                                type: 'list',
+                                message: 'What is the employees role?',
+                                name: 'newEmpRole',
+                                choices: roleList
+
+                            },
+                            {
+                                type: 'list',
+                                message: 'Who is the employees manager?',
+                                name: 'empManager',
+                                choices: employeeList
+                            }
+                        ]).then((answers) => {
+                            db.query('INSERT INTO employee SET ?',
+                                {
+                                    first_name: answers.newFirName,
+                                    last_name: answers.newLaName,
+                                    role_id: answers.newEmpRole,
+                                    manager_id: answers.empManager
+                                },
+                                function (err, results) {
+                                    if (err) {
+                                        throw err;
+                                    }
+                                    console.log('Employee added successfully');
+                                    init();
+                                });
+                        });
                     });
                 });
                 break;
@@ -202,7 +205,7 @@ function init() {
                         if (err) throw err;
                         const roleList = results.map(role => ({
                             name: `${role.title}`,
-                            value: role.role_id
+                            value: role.id
                         }));
                         inquirer.prompt([
                             {
@@ -218,7 +221,7 @@ function init() {
                                 choices: roleList
                             }
                         ]).then((answer) => {
-                            db.query(`UPDATE employee SET job_title = (SELECT title FROM role WHERE role.role_id = ${answer.roleId}) WHERE id = ${answer.employeeId}`, function (err, results) {
+                            db.query(`UPDATE employee SET role_id = ${answer.roleId} WHERE id = ${answer.employeeId}`, function (err, results) {
                                 if (err) throw err;
                                 console.log('Employee role updated successfully!');
                                 init();
